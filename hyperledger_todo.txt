@@ -1,0 +1,122 @@
+- Kubernetes API를 사용하여 IBM 클라우드에 블록체인 네트워크 배포하기
+https://github.com/IBM/blockchain-network-on-kubernetes/blob/master/README-ko.md
+
+
+https://www.facebook.com/ChoEunOk/videos/1895300717148303/
+
+- gRPC 
+https://developer.ibm.com/kr/cloud/blockchain/2017/03/26/grpc_overview_01/
+
+채널 초기화 과정:mychannel
+peer
+
+admin|$2a$10$um1stxk6G/P5RcTsiBa/3u5R67967HydSmLDkioH2bsFNinvkYMWW|client||[{"name":"hf.Revoker","value":"1"},{"name":"hf.IntermediateCA","value":"1"},{"name":"hf.GenCRL","value":"1"},{"name":"hf.Registrar.Attributes","value":"*"},{"name":"hf.AffiliationMgr","value":"1"},{"name":"hf.Registrar.Roles","value":"*"},{"name":"hf.Registrar.DelegateRoles","value":"*"}]|1|-1|1
+user1|$2a$10$FBVND0Cj978F6zHPvJgFxeVvYl.zzXhWlxUTqFHmKP3hpXkO8hUCe|client|org1.department1|[{"name":"hf.EnrollmentID","value":"user1","ecert":true},{"name":"hf.Type","value":"client","ecert":true},{"name":"hf.Affiliation","value":"org1.department1","ecert":true}]|1|1|1
+
+Hyperledger fabric 시스템 구축 환경 설정
+https://docs.google.com/presentation/d/1QtIaYURSFVhm7hhMkOAljKFlui4LicVk9VWQdsrn_Mk/edit#slide=id.g4134f2c2e8_0_46
+
+
+git clone https://github.com/hyperledger/fabric-samples
+cd fabric-samples/fabcar
+sudo ./startFabric.sh
+
+sudo docker exec -it ca.example.com bash
+
+sudo docker exec -it orderer.example.com bash
+sudo docker exec -it peer0.org1.example.com bash
+
+sudo docker exec -it couchdb bash
+sudo docker exec -it cli bash
+
+apt-get update
+apt-get install vim
+
+apt-get install sqlite3 libsqlite3-dev
+sqlite3 fabric-ca-server.db
+sqlite> .tables
+
+
+
+/opt/gopath/src/chaincode#
+/opt/gopath/src/github.com/hyperledger/fabric
+
+## Docker compose ####################################################################
+https://github.com/hyperledger/fabric-samples/blob/release-1.2/basic-network/docker-compose.yml
+
+docker-compose -f docker-compose.yml down
+docker-compose -f docker-compose.yml up -d ca.example.com orderer.example.com peer0.org1.example.com couchdb
+
+docker-compose -f docker-compose.yml stop
+
+docker-compose -f ./docker-compose.yml up -d cli
+
+docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp" cli peer chaincode install -n fabcar -v 1.0 -p "$CC_SRC_PATH" -l "$LANGUAGE"
+docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp" cli peer chaincode instantiate -o orderer.example.com:7050 -C mychannel -n fabcar -l "$LANGUAGE" -v 1.0 -c '{"Args":[""]}' -P "OR ('Org1MSP.member','Org2MSP.member')"
+sleep 10
+docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp" cli peer chaincode invoke -o orderer.example.com:7050 -C mychannel -n fabcar -c '{"function":"initLedger","Args":[""]}'
+
+
+docker-compose up -d
+
+docker-compose logs 컨테이너이름 -f
+docker-compose logs -f -t >> myDockerCompose.log
+
+
+docker-compose up -d --build [<서비스 이름>]
+
+docker-compose [stop, down, start, up]
+docker-compose ps
+docker-compose down --volume
+
+docker exec -it stellar /bin/bash
+
+## Node.js ##################################################################
+curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+sudo apt-get install build-essential
+
+#checking
+node -v
+
+
+cd fabric-samples/fabcar
+npm install
+node enrollAdmin.js
+node registerUser.js
+
+
+## Kafka ###########################################################################
+http://epicdevs.com/m/17
+
+
+1회차
+ㅡ 자기 소개 및 인사
+ㅡ 물류통관 사례 분석 (PoC사업)
+ㅡ 주제 및 발표자 선정
+ㅡ 뒷풀이
+
+2회차
+ㅡ 기본 아키텍처 소개
+ㅡ 버전 1.1과 1.2 비교
+ㅡ 세부 모듈 기능 소개, 모듈별 역할 이해
+ㅡ 하이퍼렛저 패브릭 적용 사례 연구
+
+3회차
+ㅡ 채널 및 사용자 인증 이해
+ㅡ 피어의 종류와 역할
+ㅡ HA 구성, 주키퍼 기능 소개
+ㅡ 증명방식, 오더러와 Kafka
+
+4회차
+ㅡ 트랜잭션 데이터 구조와 저장 방식
+ㅡ 스마트 컨트랙트와 체인코드
+ㅡ Go 랭귀지 소개 및 사용 예제
+ㅡ 시스템 구축 환경 설정
+
+5회차
+ㅡ 프론트엔드 요소 및 기능
+ㅡ 물류통관 사례 RFP 분석 (NIA사업)
+ㅡ 시스템 확장 기능 (회원, DB연동, 서비스 방식 등)
+ㅡ 뒷풀이
